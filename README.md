@@ -16,7 +16,6 @@ Django template tags and filters for basic arithmetic
   {% op foo -= 10 %}
   {{ foo }}
   ```
-=================
 ###Result:###
   ```
   157 148 157 137
