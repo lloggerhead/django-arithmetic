@@ -16,6 +16,15 @@ class ArithmeticNode(template.Node):
         self.var_b = parts[2]
         self.op = parts[1]
 
+    def is_assignment(self):
+        return self.op == '='
+
+    def is_assign_op(self):
+        return self.op in self.assign_op
+
+    def is_legal_op(self):
+        return self.is_assign_op() or self.op in self.simple_op
+
     # return True if '{{ var }}' is int or float
     def is_legal_type(self, var):
         try:
@@ -27,41 +36,53 @@ class ArithmeticNode(template.Node):
                 return False
         return True
 
-    def is_assign_op(self):
-        return self.op in self.assign_op
+    def get_value(self):
+        try:
+            # equal '{{ var_a }}'
+            self.value_a = template.Variable(self.var_a).resolve(self.context)
+            if not self.is_legal_type(self.value_a):
+                raise TypeError
+        except (TypeError, template.VariableDoesNotExist) as e:
+            self.value_a = None
+        try:
+            # equal '{{ var_a }}'
+            self.value_b = template.Variable(self.var_b).resolve(self.context)
+            if not self.is_legal_type(self.value_b):
+                raise TypeError
+        except (TypeError, template.VariableDoesNotExist) as e:
+            self.value_b = None
 
-    def is_legal_op(self):
-        return self.is_assign_op() or self.op in self.simple_op
+    def is_lvalue_exist(self):
+        return self.value_a != None
+
+    def is_rvalue_exist(self):
+        return self.value_b != None
+
+    def calculate(self):
+        if self.is_assignment():
+            self.context[self.var_a] = self.value_b
+        else:
+            value = eval("%s %s %s" %
+                         (self.value_a, self.op.rstrip('='), self.value_b), {"__builtins__": None}, {})
+            if not self.is_assign_op():
+                # show operate result, like '{% op 1 + 1 %}'
+                return str(value)
+            self.context[self.var_a] = value
+        return u''
 
     def render(self, context):
         try:
             if not self.is_legal_op():
                 raise OperateError
-
-            try:
-                # equal '{{ var_b }}'
-                value_b = template.Variable(self.var_b).resolve(context)
-                if self.op == '=':
-                    context[self.var_a] = value_b
-                    return u''
-                else:
-                    value_a = template.Variable(self.var_a).resolve(context)
-            except template.VariableDoesNotExist as e:
-                raise e
-                
-            if not self.is_legal_type(value_a) or not self.is_legal_type(value_b):
-                raise TypeError
-
-            value = eval("%s %s %s" %
-                         (value_a, self.op.rstrip('='), value_b), {"__builtins__": None}, {})
-            if self.is_assign_op():
-                context[self.var_a] = value
-            else:
-                # show operate result, like '{% op 1 + 1 %}'
-                return str(value)
+            self.context = context
+            self.get_value()
+            if not self.is_rvalue_exist():
+                raise ValueError
+            if not self.is_lvalue_exist() and not self.is_assignment():
+                raise ValueError
+            return self.calculate()
         except (TypeError, ValueError, OperateError) as e:
             raise e
-        return u''
 
 
 # tags
@@ -69,8 +90,8 @@ class ArithmeticNode(template.Node):
 #   {% op foo = 147 %}
 #   {% op foo + 10 %}
 #   {% op foo -= 10 %}
-@register.tag()
-def op(parser, token):
+@register.tag(name="op")
+def do_arithmetic(parser, token):
     """{% op <var_a> <op> <var_b> %}"""
     parts = token.split_contents()
     if len(parts) != 4:
@@ -82,6 +103,8 @@ def op(parser, token):
 # Useage:
 #   {{ 147|add }}
 #   {{ 147|add:1 }}
+
+
 @register.filter(is_safe=False)
 def add(value, arg='1'):
     try:
