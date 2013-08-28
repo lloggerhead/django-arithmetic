@@ -11,7 +11,7 @@ class ArithmeticNode(template.Node):
     simple_op = ('+', '-', '*', '/', '%', '**')
 
     def __init__(self, parts):
-        # {% op <var_a> <op> <var_b> %}
+        # {% op var_a <op> var_b %}
         self.var_a = parts[0]
         self.var_b = parts[2]
         self.op = parts[1]
@@ -37,14 +37,18 @@ class ArithmeticNode(template.Node):
         try:
             if not self.is_legal_op():
                 raise OperateError
+
             try:
                 # equal '{{ var_b }}'
                 value_b = template.Variable(self.var_b).resolve(context)
-                value_a = template.Variable(self.var_a).resolve(context)
-            except template.VariableDoesNotExist:
                 if self.op == '=':
                     context[self.var_a] = value_b
-                return u''
+                    return u''
+                else:
+                    value_a = template.Variable(self.var_a).resolve(context)
+            except template.VariableDoesNotExist as e:
+                raise e
+                
             if not self.is_legal_type(value_a) or not self.is_legal_type(value_b):
                 raise TypeError
 
@@ -56,8 +60,7 @@ class ArithmeticNode(template.Node):
                 # show operate result, like '{% op 1 + 1 %}'
                 return str(value)
         except (TypeError, ValueError, OperateError) as e:
-            # silent failure
-            return u''
+            raise e
         return u''
 
 
