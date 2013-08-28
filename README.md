@@ -1,18 +1,20 @@
 Django template tags for basic arithmetic
 =================
-##Usage:##
-  legel operations include "+ - \* / % \*\* //" and "= += -= ..."  
-  notice: the output is same as console
+Usage:
+-----------------
+  The legel operations include __"+ - \* / % \*\* //"__ and __"= += -= ..."__  
+  **Notice: the output is same as console**
   ```
   {% <var> <op> <var|value> %}
   ```
-  below syntax will do some very simple operate  
-  'var foo' same as 'foo = 0'
-  'inc' or 'dec' equals '+ 1' or '- 1'
+  Corresponding relation:  
+  __'var foo' ==> 'foo=0'__  
+  __'inc' or 'dec' ==> '+1' or '-1'__
   ```
   {% (var|del|inc|dec) <var_name> %}
   ```
-##Example:##
+Example:
+-----------------
   ```
   {% load arithmetic %}
   <!-- simple operations  -->
@@ -28,7 +30,8 @@ Django template tags for basic arithmetic
   {% op foo *= 10 %}    {{ foo }}
   {% op foo - 10 %}
   ```
-##Result:##
+Output:
+-----------------
   ```
   0 1 0 
   147 147 49 490 480
