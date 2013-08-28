@@ -11,7 +11,7 @@ class ArithmeticNode(template.Node):
     simple_op = ('+', '-', '*', '/', '%', '**')
 
     def __init__(self, parts):
-        # {% op var_a <op> var_b %}
+        # {% op <var_a> <op> <var_b> %}
         self.var_a = parts[0]
         self.var_b = parts[2]
         self.op = parts[1]
