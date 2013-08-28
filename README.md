@@ -3,7 +3,7 @@ django-arithmetic
 
 Django template tags and filters for basic arithmetic
 
-###Useage:###
+###Example:###
   ```
   {% load arithmetic %}
   <!-- '=', '+=', '-=', '/=', '*=', '%=', '**=', '+', '-', '*', '/', '%', '**' -->
