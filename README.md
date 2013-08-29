@@ -1,4 +1,4 @@
-Django template tags for basic arithmetic
+Django template tags for arithmetic
 =================
 Usage:
 -----------------
